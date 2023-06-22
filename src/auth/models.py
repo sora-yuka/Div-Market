@@ -10,7 +10,7 @@ account = Table(
     Column("email", String, unique=True, nullable=False),
     Column("username", String(75), nullable=False),
     Column("hashed_password", String(125), nullable=False),
-    Column("balance", Float, default="0"),
+    Column("balance", Float, default=0),
     Column("created_at", DateTime),
     Column("is_active", Boolean, default=False),
 )

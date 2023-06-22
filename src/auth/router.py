@@ -11,10 +11,7 @@ router = APIRouter()
 
 @router.post("/auth/register")
 async def register(user: schemas.UserCreate, session: AsyncSession = Depends(get_async_session)):
-    result = await views.check_user_exist(user.email, session)
-    
-    if result.get("data") == None:
+    try:
+        return await views.create_user(user.dict(), session)
+    except:
         raise HTTPException(status_code=404, detail="User already registered.")
-    
-    return await views.create_user(user.dict(), session)
-    # return result.get("data")

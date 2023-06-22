@@ -3,3 +3,5 @@ asyncpg
 sqlalchemy
 alembic
 python-decouple
+flower
+celery

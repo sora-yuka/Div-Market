@@ -1,0 +1,5 @@
+fastapi[all]
+asyncpg
+sqlalchemy
+alembic
+python-decouple

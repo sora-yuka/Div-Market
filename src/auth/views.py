@@ -16,5 +16,5 @@ async def check_user_exist(email: str, session: AsyncSession = Depends(get_async
 
 async def create_user(user: dict, session: AsyncSession = Depends(get_async_session)):
     stmt = insert(account).values(**user)
-    # await session.execute(stmt)
+    await session.execute(stmt)
     return stmt

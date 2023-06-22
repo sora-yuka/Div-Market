@@ -2,8 +2,12 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 
 
-class UserCreate(BaseModel):
-    email: str = Field(..., example="example@gmail.com")
-    username: str = Field(..., example="example")
-    hashed_password: str = Field(..., example="qwerty123")
+class UserRead(BaseModel):
+    email: str
+    username: str
+    balance: float
+    
+
+class UserCreate(UserRead):
+    hashed_password: str
     created_at: datetime = datetime.utcnow()

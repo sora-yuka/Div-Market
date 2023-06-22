@@ -6,7 +6,7 @@ from database import get_async_session
 from auth.models import account
 
 
-async def check_user_exist(email: str, session: AsyncSession = Depends(get_async_session)):
+async def get_user(email: str, session: AsyncSession = Depends(get_async_session)):
     query = select(account).where(account.c.email == email)
     result = await session.execute(query)
     
@@ -16,11 +16,13 @@ async def check_user_exist(email: str, session: AsyncSession = Depends(get_async
     }
 
 async def create_user(user: dict, session: AsyncSession = Depends(get_async_session)):
+    """ Creating user with email sending """
     send_email_confirmation.delay(user.get("email"))
     stmt = insert(account).values(**user)
     await session.execute(stmt)
     await session.commit()
     return {
         "status": "success",
-        "data": "We sent a verification letter to your email."
+        "data": "We sent a verification letter to your email.",
+        "detail": user
     }

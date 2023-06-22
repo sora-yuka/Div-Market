@@ -6,3 +6,4 @@ python-decouple
 flower
 celery
 redis
+passlib

@@ -13,4 +13,12 @@ account = Table(
     Column("balance", Float, default=0),
     Column("created_at", DateTime),
     Column("is_active", Boolean, default=False),
+    Column("activation_code", String, nullable=True),
+)
+
+code = Table(
+    "recovery_code", metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("email", String, unique=True, nullable=False),
+    Column("code", Integer, unique=True, nullable=True),
 )

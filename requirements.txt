@@ -7,3 +7,4 @@ flower
 celery
 redis
 passlib
+PyJWT

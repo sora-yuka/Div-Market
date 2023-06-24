@@ -72,6 +72,7 @@ async def set_new_password(
         email: str, recovery_code: int, new_password: str, 
         session: AsyncSession = Depends(get_async_session)
     ):
+    """ Seting the user's new password """
     query = select(code).where(code.c.email == email)
     result = await session.execute(query)
     
@@ -108,6 +109,7 @@ async def change_password(
         email: str, old_password: str, new_password: str, 
         session: AsyncSession = Depends(get_async_session)
     ):
+    """ Changing the user's old password """
     user_data = await get_user(email=email, session=session)
     user_data = user_data.get("data")[0]
     stmt = (

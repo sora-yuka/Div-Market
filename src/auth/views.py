@@ -8,7 +8,7 @@ from auth.models import account, code
 
 
 async def get_user(email: str, session: AsyncSession = Depends(get_async_session)):
-    """ Searching user by email """
+    """ Searching user in database by email """
     query = select(account).where(account.c.email == email)
     result = await session.execute(query)
     return {
@@ -24,34 +24,34 @@ async def create_user(user: dict, session: AsyncSession = Depends(get_async_sess
     await session.commit()
     return {
         "status": "success",
-        "data": "We've sent a verification letter to your email.",
-        "detail": user
+        "message": "We've sent a verification letter to your email.",
+        "data": user
     }
     
 async def activate_account(code: str, session: AsyncSession = Depends(get_async_session)):
     """ Activating user account """
     query = select(account).where(account.c.activation_code == code)
     result = await session.execute(query)
-    data = [dict(res._mapping) for res in result]
+    user_data = [dict(res._mapping) for res in result]
     
     try:
-        if data[0]:
-            stmt = (
-                update(account).
-                where(account.c.activation_code == code).
-                values(is_active = True, activation_code = "")
-            )
-            await session.execute(stmt)
-            await session.commit()
-        
-            return {
-                "status": "success",
-                "data": "Account activated successfully!"
-            }
+        user_data = user_data.get("data")[0]
+        stmt = (
+            update(account).
+            where(account.c.activation_code == code).
+            values(is_active = True, activation_code = "")
+        )
+        await session.execute(stmt)
+        await session.commit()
+    
+        return {
+            "status": "success",
+            "message": "Account activated successfully!"
+        }
     except IndexError:
         return {
             "status": "forbidden",
-            "data": "Incorrect code, please try again."
+            "message": "Incorrect code, please try again."
         }
 
 async def create_recovery_code(email: str, session: AsyncSession = Depends(get_async_session)):
@@ -65,7 +65,7 @@ async def create_recovery_code(email: str, session: AsyncSession = Depends(get_a
     await session.commit()
     return {
         "status": "success",
-        "data": "We've sent a recovery code, please check your email."
+        "message": "We've sent a recovery code, please check your email."
     }
     
 async def set_new_password(
@@ -81,7 +81,7 @@ async def set_new_password(
         if user_recovery_code != recovery_code:
             return {
                 "status": "forbidden",
-                "data": "Incorrect code.",
+                "message": "Incorrect code.",
             }
         stmt = (
             update(account).
@@ -95,12 +95,12 @@ async def set_new_password(
         await session.commit()
         return {
             "status": "success",
-            "data": "Password reset successfully."
+            "message": "Password has been reset successfully."
         }
     except IndexError:
         return {
             "status": "forbidden",
-            "data": "Incorrect email or you've already reset your password."
+            "message": "Incorrect email or you've already reset your password. Please, click on 'send recovery code'."
         }
         
 
@@ -119,5 +119,5 @@ async def change_password(
     await session.commit()
     return {
         "status": "success",
-        "data": "You've successfully updated your password"
+        "message": "Password has been updated successfully."
     }

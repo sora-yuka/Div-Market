@@ -16,7 +16,7 @@ def verification_code(user_email: str, code: str):
     email["To"] = user_email
     
     email.set_content(
-        f"Here is your code: {code}\nEnter verification code on this link: http://127.0.0.1:8000/auth/confirm"
+        f"Here is your code: {code}\nEnter verification code on this link: http://127.0.0.1:8000/docs#/Auth/profile_activation_api_v1_auth_confirm_post"
     )
     return email
 
@@ -35,7 +35,7 @@ def recovery_code(user_email: str, code: str):
     email["To"] = user_email
     
     email.set_content(
-        f"Here is your code: {code}\nEnter recovery code on this link: http://127.0.0.1:8000/auth/password-recovery"
+        f"Here is your code: {code}\nEnter recovery code on this link: http://127.0.0.1:8000/docs#/Auth/profile_set_new_password_api_v1_auth_password_recovery_post"
     )
     
 @celery.task

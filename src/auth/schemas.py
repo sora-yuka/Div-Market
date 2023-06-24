@@ -21,3 +21,9 @@ class ForgotPassword(BaseModel):
 class PasswordRecovery(ForgotPassword):
     recovery_code: int
     new_password: str
+    
+    
+class PasswordChange(ForgotPassword):
+    old_password: str
+    new_password: str
+    

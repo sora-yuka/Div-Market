@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from tasks.tasks import send_email_confirmation, send_email_recovery
 from random import randint
 from database import get_async_session
-from auth.models import account, code
+from applications.auth.models import account, code
 
 
 async def get_user(email: str, session: AsyncSession = Depends(get_async_session)):
@@ -35,7 +35,7 @@ async def activate_account(code: str, session: AsyncSession = Depends(get_async_
     user_data = [dict(res._mapping) for res in result]
     
     try:
-        user_data = user_data.get("data")[0]
+        user_data = user_data[0]
         stmt = (
             update(account).
             where(account.c.activation_code == code).

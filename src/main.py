@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from auth import router as auth_router
-
+from applications.auth import router as auth_router
+from applications.profile import router as profile_router
 
 app = FastAPI(
     docs_url="/docs",
@@ -11,4 +11,7 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
+# connecting auth router
 app.include_router(auth_router.router, tags=["Auth"])
+# connecting profile router
+app.include_router(profile_router.router, tags=["Profile"])

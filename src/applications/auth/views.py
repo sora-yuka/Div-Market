@@ -11,9 +11,10 @@ async def get_user(email: str, session: AsyncSession = Depends(get_async_session
     """ Searching user in database by email """
     query = select(account).where(account.c.email == email)
     result = await session.execute(query)
+    user_data = [dict(res._mapping) for res in result]
     return {
         "status": "success",
-        "data": [dict(res._mapping) for res in result]
+        "data": user_data[0]
     }
     
 async def create_user(user: dict, session: AsyncSession = Depends(get_async_session)):
@@ -57,7 +58,7 @@ async def activate_account(code: str, session: AsyncSession = Depends(get_async_
 async def create_recovery_code(email: str, session: AsyncSession = Depends(get_async_session)):
     """ Creating recovery code to reset user password """
     user_data = await get_user(email=email, session=session)
-    user_data = user_data.get("data")[0]
+    user_data = user_data.get("data")
     recovery_code = randint(0000_0000, 9999_9999)
     send_email_recovery.delay(email, recovery_code)
     stmt = insert(code).values(email=email, code=recovery_code)
@@ -77,8 +78,8 @@ async def set_new_password(
     result = await session.execute(query)
     
     try:
-        user_data = {"data": [dict(res._mapping) for res in result]}.get("data")[0]
-        user_recovery_code = user_data.get("code")
+        user_data = {"data": [dict(res._mapping) for res in result]}.get("data")
+        user_recovery_code = user_data[0].get("code")
         if user_recovery_code != recovery_code:
             return {
                 "status": "forbidden",
@@ -106,15 +107,15 @@ async def set_new_password(
         
 
 async def change_password(
-        email: str, old_password: str, new_password: str, 
+        current_user: str, old_password: str, new_password: str, 
         session: AsyncSession = Depends(get_async_session)
     ):
     """ Changing the user's old password """
-    user_data = await get_user(email=email, session=session)
-    user_data = user_data.get("data")[0]
+    user_data = await get_user(email=current_user, session=session)
+    user_data = user_data.get("data")
     stmt = (
         update(account).
-        where(account.c.email == email).
+        where(account.c.email == current_user).
         values(hashed_password = new_password)
     )
     await session.execute(stmt)

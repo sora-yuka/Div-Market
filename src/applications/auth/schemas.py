@@ -23,7 +23,7 @@ class PasswordRecovery(ForgotPassword):
     new_password: str
     
     
-class PasswordChange(ForgotPassword):
+class PasswordChange(BaseModel):
     old_password: str
     new_password: str
     

@@ -6,10 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from random import randint
 from database import get_async_session
+from utils.token import get_current_user, create_access_token
 from utils.hasher import hash_password, verify_password
-from utils import token
 from applications.auth.models import account
 from applications.auth import schemas
+from datetime import timedelta
 from applications.auth import views
 
 router = APIRouter(
@@ -43,20 +44,19 @@ async def profile_activation(activation_code: str, session: AsyncSession = Depen
 async def profile_login(format_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_async_session)):
     """ Checking for user exist """
     # getting user data
-    user_data = await views.get_user(email=format_data.username, session=session)
     try:
         """ Password verifying """
-        user_data = user_data.get("data")[0]
-        password = user_data.get("hashed_password")
+        user_data = await views.get_user(email=format_data.username, session=session)
+        password = user_data.get("data").get("hashed_password")
         # validating of the user's password
         verified_password = verify_password(plain_password=format_data.password, hashed_password=password)
         if not verified_password:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incorrect password.")
         
-        if user_data.get("is_active") == True:
+        if user_data.get("data").get("is_active") == True:
             """ Creating token """
-            access_token_expires = token.timedelta(minutes=15)
-            access_token = await token.create_access_token(
+            access_token_expires = timedelta(minutes=15)
+            access_token = await create_access_token(
                 data={"sub": format_data.username},
                 expires_delta=access_token_expires,
             )
@@ -64,8 +64,8 @@ async def profile_login(format_data: OAuth2PasswordRequestForm = Depends(), sess
                 "access_token": access_token,
                 "token_type": "bearer",
                 "user_info": {
-                    "email": user_data.get("email"),
-                    "username": user_data.get("username"),
+                    "email": user_data.get("data").get("email"),
+                    "username": user_data.get("data").get("username"),
                 }
             }
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inactive account.")
@@ -77,12 +77,12 @@ async def profile_login(format_data: OAuth2PasswordRequestForm = Depends(), sess
 async def profile_recovery(request: schemas.ForgotPassword, session: AsyncSession = Depends(get_async_session)):
     """ Checking for user exist """
     # getting user data
-    user_data = await views.get_user(email=request.email, session=session)
     try:
         """ Creating recovery code """
-        if user_data.get("data")[0]:
-            # generating recovery code for password reset
-            return await views.create_recovery_code(email=request.email, session=session)
+        user_data = await views.get_user(email=request.email, session=session)
+        # if user_data.get("data"):
+        # generating recovery code for password reset
+        return await views.create_recovery_code(email=request.email, session=session)
     except IndexError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User does not exists.")
     except IntegrityError:
@@ -105,12 +105,16 @@ async def profile_set_new_password(
     
 
 @router.post("/password-change")
-async def profile_password_change(request: schemas.PasswordChange, session: AsyncSession = Depends(get_async_session)):
+async def profile_password_change(
+        request: schemas.PasswordChange,
+        current_user: schemas.UserRead = Depends(get_current_user),
+        session: AsyncSession = Depends(get_async_session)
+    ):
     """ Changing user password """
     # getting user data
-    user_data = await views.get_user(email=request.email, session=session)
     try:
-        user_data = user_data.get("data")[0]
+        user_data = await views.get_user(email=current_user, session=session)
+        user_data = user_data.get("data")
         if user_data.get("is_active") == True:
             old_password = user_data.get("hashed_password")
             # validating of the user's old password
@@ -119,7 +123,7 @@ async def profile_password_change(request: schemas.PasswordChange, session: Asyn
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Old password mismatch.")
             # changing of the user's password
             return await views.change_password(
-                email=request.email, old_password=request.old_password,
+                current_user=current_user, old_password=request.old_password,
                 new_password=hash_password(password=request.new_password), session=session
             )
         else:

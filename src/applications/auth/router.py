@@ -15,7 +15,6 @@ from applications.auth import views
 
 router = APIRouter(
     prefix="/api/v1/auth",
-    tags=["Auth"]
 )
 
 @router.post("/register")

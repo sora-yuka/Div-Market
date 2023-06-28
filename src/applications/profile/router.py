@@ -9,7 +9,6 @@ from utils.token import get_current_user
 
 router = APIRouter(
     prefix="/api/v1/profile",
-    tags=["Profile"],
 )
 
 
@@ -19,7 +18,7 @@ async def get_active_user_profile(
         session: AsyncSession = Depends(get_async_session)
     ):
     user_data = await get_user(email=current_user, session=session)
-    current_user = user_data.get("data")[0]
+    current_user = user_data.get("data")
     if current_user.get("is_active") != True:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive account")
     return current_user

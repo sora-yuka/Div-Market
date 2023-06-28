@@ -8,6 +8,7 @@ class Base(DeclarativeBase):
     pass
 
 
+
 engine = create_async_engine(f"postgresql+asyncpg://{config('DATABASE_URL')}")
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 

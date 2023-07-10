@@ -63,7 +63,9 @@ ___
 
   ```cd src/```
 
-  ```celery -A tasks.tasks:celery worker -l info```
+  ```
+  celery -A tasks.tasks:celery worker -l info
+  ```
 
 - Запустить проект.
 

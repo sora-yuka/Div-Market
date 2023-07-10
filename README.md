@@ -22,7 +22,7 @@ ___
 
 ![Flutter](https://img.shields.io/badge/-sqladmin-yellow?style=for-the-badge&logo=python)
 ___
-#### Для хранения данных использовалось база данных Postgres, в качестве драйвера *asyncpg*. 
+#### Для хранения данных использовалось Postgres, в качестве драйвера *asyncpg*. 
 #### Для хэширования пароля использовалось *Passlib* с аутентификацией *PyJWT*.
 #### Для миграции использовалось *alembic*. 
 #### В качестве админки использовалось *sqladmin*.

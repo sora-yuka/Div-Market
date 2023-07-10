@@ -3,8 +3,8 @@ asyncpg
 sqlalchemy
 alembic
 python-decouple
-flower
 celery
 redis
 passlib
 PyJWT
+sqladmin

@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from database import get_async_session
 from applications.products.models import product, category
+from applications.products.schemas import ProductCreate
 
 
 #* Category views
@@ -51,5 +52,55 @@ async def get_products(session: AsyncSession = Depends(get_async_session)):
         "data": [dict(res._mapping) for res in result]
     }
     
-async def create_product(product: dict, session: AsyncSession = Depends(get_async_session)):
-    return "probka"
+async def create_product(product_item: dict, current_user: str, session: AsyncSession = Depends(get_async_session)):
+    product_item["owner"] = current_user
+    stmt = insert(product).values(**product_item)
+    await session.execute(stmt)
+    await session.commit()
+    return {
+        "status": status.HTTP_201_CREATED,
+        "message": "Product created successfully",
+        "data": product_item,
+    }
+    
+async def detail_product(product_id: int, current_user: str, session: AsyncSession = Depends(get_async_session)):
+    query = select(product).where(product.c.id == product_id)
+    try:
+        result = [dict(res._mapping) for res in await session.execute(query)][0]
+    except IndexError:
+        return {
+            "status": status.HTTP_404_NOT_FOUND,
+            "message": "Product doesn't exist"
+        }
+    return {
+        "status": status.HTTP_200_OK,
+        "data": result
+    }
+
+async def edit_product(product_item: dict, current_user: str, session: AsyncSession = Depends(get_async_session)):
+    query = select(product).where(product.c.id == product_item.get("id"))
+    try:
+        data = [dict(res._mapping) for res in await session.execute(query)][0]
+        if data.get("owner") == current_user:
+            stmt = (
+                update(product).
+                where(product.c.id == product_item.get("id")).
+                values(**product_item)
+            )
+            await session.execute(stmt)
+            await session.commit()
+            return {
+                "status": status.HTTP_200_OK,
+                "message": "Product has updated successfully",
+                "data": [dict(res._mapping) for res in await session.execute(query)][0]
+            }
+        
+        return {
+            "status": status.HTTP_403_FORBIDDEN,
+            "message": "You aren't product owner",
+        }
+    except IndexError:
+        return {
+            "status": status.HTTP_404_NOT_FOUND,
+            "message": "Product doesn't exist"
+        }

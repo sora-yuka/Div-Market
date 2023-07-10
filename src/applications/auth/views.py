@@ -60,7 +60,7 @@ async def create_recovery_code(email: str, session: AsyncSession = Depends(get_a
     user_data = await get_user(email=email, session=session)
     user_data = user_data.get("data")
     recovery_code = randint(0000_0000, 9999_9999)
-    send_email_recovery.delay(email, recovery_code)
+    send_email_recovery.delay(user_email=email, code=recovery_code)
     stmt = insert(code).values(email=email, code=recovery_code)
     await session.execute(stmt)
     await session.commit()

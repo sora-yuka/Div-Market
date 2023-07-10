@@ -22,7 +22,7 @@ def verification_code(user_email: str, code: str):
 
 @celery.task
 def send_email_confirmation(user_email: str, code: str):
-    email = verification_code(user_email, code)
+    email = verification_code(user_email=user_email, code=code)
     with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
         server.login(config("EMAIL_HOST"), config("EMAIL_PASSWORD"))
         server.send_message(email)
@@ -37,10 +37,11 @@ def recovery_code(user_email: str, code: str):
     email.set_content(
         f"Here is your code: {code}\nEnter recovery code on this link: http://127.0.0.1:8000/docs#/Auth/profile_set_new_password_api_v1_auth_password_recovery_post"
     )
+    return email
     
 @celery.task
 def send_email_recovery(user_email: str, code: str):
-    email = recovery_code(user_email, code)
+    email = recovery_code(user_email=user_email, code=code)
     with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
         server.login(config("EMAIL_HOST"), config("EMAIL_PASSWORD"))
         server.send_message(email)

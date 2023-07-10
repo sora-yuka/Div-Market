@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from sqladmin import Admin
 
-from config import UserAdmin
+from config import UserAdmin, ProductAdmin, AdminAuth
 from applications.auth import router as auth_router
 from applications.profile import router as profile_router
 from applications.products import router as product_router
+from decouple import config as conf
 from database import engine
 
 
@@ -17,8 +18,12 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 # connecting sql-admin panel
-admin = Admin(app, engine)
+authentication_backend = AdminAuth(secret_key=conf("SECRET_KEY"))
+admin = Admin(app=app, engine=engine, authentication_backend=authentication_backend)
+
+# adding to admin view panel
 admin.add_view(UserAdmin)
+admin.add_view(ProductAdmin)
 
 # connecting auth router
 app.include_router(auth_router.router, tags=["Auth"])
